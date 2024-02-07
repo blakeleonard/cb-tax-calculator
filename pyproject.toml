@@ -7,7 +7,8 @@ name = "cb-tax-calculator"
 version = "2024.2.1"
 requires-python = ">= 3.8"
 dependencies = [
-  "beautifulsoup4"
+  "dateparser",
+  "pydantic"
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -17,7 +18,8 @@ dev = [
     "black",
     "flake8",
     "isort",
-    "mypy"
+    "mypy",
+    "types-dateparser"
 ]
 
 [tool.black]
