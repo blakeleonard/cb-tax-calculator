@@ -14,7 +14,28 @@ class AssetData(BaseModel):
 
 
 def process_csv(csv_file_name: str) -> None:
+    short_term_data, long_term_data = get_data(csv_file_name)
 
+    short_term_proceeds, short_term_cost_basis, short_term_gain, short_term_data = process_data(short_term_data)
+    long_term_proceeds, long_term_cost_basis, long_term_gain, long_term_data = process_data(long_term_data)
+
+    print("\nShort Term-")
+    print(f"Proceeds: {short_term_proceeds}")
+    print(f"Cost Basis: {short_term_cost_basis}")
+    print(f"Gain: {short_term_gain}")
+    print("Data:")
+    pprint(short_term_data)
+
+    print("\nLong Term:")
+    print(f"Proceeds: {long_term_proceeds}")
+    print(f"Cost Basis: {long_term_cost_basis}")
+    print(f"Gain: {long_term_gain}")
+    print("Data:")
+    pprint(long_term_data)
+    print("\n")
+
+
+def get_data(csv_file_name: str) -> tuple[dict[str, AssetData], dict[str, AssetData]]:
     short_term_data: dict[str, AssetData] = defaultdict(AssetData)
     long_term_data: dict[str, AssetData] = defaultdict(AssetData)
 
@@ -28,7 +49,7 @@ def process_csv(csv_file_name: str) -> None:
 
             start_date = parse_date(row["Date Acquired"])
             end_date = parse_date(row["Date of Disposition"])
-            delta = end_date - start_date
+            delta = end_date - start_date  # type: ignore
 
             if delta.days < 365:
                 short_term_data[asset_name].proceeds += proceeds
@@ -37,18 +58,25 @@ def process_csv(csv_file_name: str) -> None:
                 long_term_data[asset_name].proceeds += proceeds
                 long_term_data[asset_name].cost_basis += cost_basis
 
-    for asset_data in short_term_data.values():
-        asset_data.gain = round(asset_data.proceeds) - round(asset_data.cost_basis)
+    return short_term_data, long_term_data
 
-    for asset_data in long_term_data.values():
-        asset_data.gain = round(asset_data.proceeds) - round(asset_data.cost_basis)
 
-    print("\nShort Term:")
-    pprint(short_term_data)
+def process_data(data: dict[str, AssetData]) -> tuple[float, float, float, dict[str, AssetData]]:
+    total_proceeds: float = 0
+    total_cost_basis: float = 0
+    total_gain: float = 0
 
-    print("\nLong Term:")
-    pprint(long_term_data)
-    print("\n")
+    for asset_data in data.values():
+        proceeds = round(asset_data.proceeds)
+        cost_basis = round(asset_data.cost_basis)
+
+        asset_data.gain = proceeds - cost_basis
+
+        total_proceeds += proceeds
+        total_cost_basis += cost_basis
+        total_gain += asset_data.gain
+
+    return total_proceeds, total_cost_basis, total_gain, data
 
 
 def main() -> None:
